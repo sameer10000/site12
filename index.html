@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-Tent Calculator</title>
+<!-- Razorpay Checkout Script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<style>
+/* Modern and Stylish CSS */
+body {
+font-family: 'Arial', sans-serif;
+background-color: #f4f4f9;
+color: #333;
+line-height: 1.6;
+}
+
+.container {
+max-width: 800px;
+margin: 40px auto;
+padding: 30px;
+background-color: #fff;
+border-radius: 12px;
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+transition: opacity 0.5s ease-in-out;
+}
+
+.hidden {
+display: none !important;
+}
+
+h2, h3 {
+text-align: center;
+color: #1a1a1a;
+margin-bottom: 20px;
+font-weight: 600;
+}
+
+.form-group {
+margin-bottom: 20px;
+}
+
+label {
+display: block;
+margin-bottom: 8px;
+font-weight: bold;
+color: #555;
+font-size: 14px;
+}
+
+select,
+input[type="number"],
+input[type="text"] {
+width: 100%;
+padding: 12px;
+border: 1px solid #ddd;
+border-radius: 8px;
+box-sizing: border-box;
+font-size: 16px;
+transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+select:focus,
+input:focus {
+border-color: #2196F3;
+box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2);
+outline: none;
+}
+
+button {
+width: 100%;
+padding: 15px;
+background-color: #2196F3;
+color: white;
+border: none;
+border-radius: 8px;
+cursor: pointer;
+font-size: 18px;
+font-weight: bold;
+transition: background-color 0.3s, transform 0.2s;
+margin-top: 10px;
+}
+
+button:disabled {
+background-color: #ccc;
+cursor: not-allowed;
+transform: none;
+}
+
+button:hover:not(:disabled) {
+background-color: #0b7dda;
+transform: translateY(-2px);
+}
+
+#addTentBtn, #proceedToShippingBtn, .pay-now-button {
+background-color: #2196F3;
+}
+
+#addTentBtn:hover:not(:disabled), #proceedToShippingBtn:hover:not(:disabled), .pay-now-button:hover:not(:disabled) {
+background-color: #0b7dda;
+}
+
+.price-display {
+text-align: center;
+margin-top: 20px;
+font-size: 24px;
+font-weight: bold;
+color: #1a1a1a;
+}
+
+/* Order Summary and Invoice Styles */
+.order-summary-container,
+.invoice-container {
+border-top: 2px solid #ddd;
+margin-top: 20px;
+padding-top: 20px;
+}
+
+.order-summary-item {
+border-bottom: 1px solid #f0f0f0;
+padding: 15px 0;
+}
+
+.order-summary-item p {
+margin: 5px 0;
+display: flex;
+justify-content: space-between;
+}
+
+.order-summary-total,
+.invoice-total {
+border-top: 3px solid #2196F3;
+padding-top: 20px;
+margin-top: 20px;
+display: flex;
+justify-content: space-between;
+font-size: 22px;
+font-weight: bold;
+color: #2196F3;
+}
+
+.invoice-subtotal {
+display: flex;
+justify-content: space-between;
+font-size: 16px;
+margin: 10px 0;
+padding-bottom: 5px;
+}
+
+.invoice-details p {
+display: flex;
+justify-content: space-between;
+font-size: 16px;
+margin: 10px 0;
+padding-bottom: 5px;
+border-bottom: 1px solid #f0f0f0;
+}
+
+.razorpay-message {
+margin-top: 20px;
+padding: 15px;
+border-radius: 8px;
+text-align: center;
+font-weight: bold;
+}
+
+.razorpay-success {
+background-color: #e6f7ec;
+color: #28a745;
+border: 1px solid #28a745;
+}
+
+.razorpay-error {
+background-color: #f7e6e6;
+color: #dc3545;
+border: 1px solid #dc3545;
+}
+
+.shipping-info-container,
+.import-duties-container {
+margin-bottom: 20px;
+text-align: left;
+}
+
+.shipping-info-container p,
+.import-duties-container p {
+font-size: 14px;
+}
+
+.shipping-info-container h3,
+.import-duties-container h3 {
+text-align: left;
+}
+
+/* Invoice table style */
+.invoice-item {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 10px 0;
+border-bottom: 1px solid #f0f0f0;
+}
+
+.invoice-item-name {
+font-weight: bold;
+flex-grow: 1;
+}
+
+.invoice-item-details {
+display: flex;
+align-items: center;
+}
+
+.view-details-btn {
+background-color: #555;
+color: white;
+border: none;
+padding: 5px 10px;
+font-size: 12px;
+border-radius: 5px;
+cursor: pointer;
+transition: background-color 0.3s;
+margin-right: 10px;
+display: block;
+min-width: 90px;
+text-align: center;
+}
+
+.view-details-btn:hover {
+background-color: #000;
+}
+
+/* Modal Styles */
+.modal {
+position: fixed;
+z-index: 1;
+left: 0;
+top: 0;
+width: 100%;
+height: 100%;
+background-color: rgba(0,0,0,0.4);
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.modal-content {
+background-color: #fefefe;
+padding: 20px;
+border-radius: 10px;
+width: 80%;
+max-width: 500px;
+box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.close-btn {
+color: #aaa;
+float: right;
+font-size: 28px;
+font-weight: bold;
+cursor: pointer;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+color: black;
+text-decoration: none;
+cursor: pointer;
+}
+
+.modal-details p {
+margin: 8px 0;
+border-bottom: none;
+padding-bottom: 0;
+}
+
+</style>
+</head>
+<body>
+
+<div id="calculator-view" class="container">
+<h2>Build Your Order</h2>
+<form id="tent-form">
+<div class="form-group">
+<label for="tent">Select Tent Category</label>
+<select id="tent"></select>
+</div>
+<div class="form-group">
+<label for="tentType">Select Tent Model</label>
+<select id="tentType"></select>
+</div>
+<div class="form-group">
+<label for="canvas">Canvas Type</label>
+<select id="canvas"></select>
+</div>
+<div class="form-group">
+<label for="scallopSelect">Scallop Design</label>
+<select id="scallopSelect">
+<option value="none">Plain Scallop</option>
+<option value="square">Square Scallop</option>
+<option value="sineWave">Sine Wave Scallop</option>
+<option value="fishMouth">Fish Mouth Scallop</option>
+<option value="invertedTaj">Inverted Taj Scallop</option>
+<option value="raj">Raj Scallop</option>
+<option value="fishScale">Fish Scale Scallop</option>
+<option value="dragonMouth">Dragon Mouth Scallop</option>
+<option value="braid">Braid Colours</option>
+</select>
+</div>
+<div class="form-group">
+<label for="colorSelect">Tent Color</label>
+<select id="colorSelect">
+<option value="default">Default</option>
+<option value="black">Black</option>
+<option value="brown">Brown</option>
+<option value="seaGreen">Sea Green</option>
+<option value="forestGreen">Forest Green</option>
+<option value="goldenYellow">Golden Yellow</option>
+<option value="red">Red</option>
+<option value="royalBlue">Royal Blue</option>
+<option value="navyBlue">Navy Blue</option>
+</select>
+</div>
+<div class="form-group">
+<label for="sodClothSelect">Sod Cloth:</label>
+<select id="sodClothSelect"></select>
+</div>
+<div class="form-group">
+<label for="groundsheetSelect">Groundsheet:</label>
+<select id="groundsheetSelect"></select>
+</div>
+<div class="form-group">
+<label for="canopyFlySelect">Canopy Fly:</label>
+<select id="canopyFlySelect"></select>
+</div>
+<div class="form-group">
+<label for="quantity">Quantity</label>
+<input type="number" id="quantity" value="1" min="1">
+</div>
+<div class="price-display">
+Subtotal: $<span id="tent-subtotal">0.00</span>
+</div>
+</form>
+<button id="addTentBtn">Add Tent to Order</button>
+<div id="order-summary-container" class="order-summary-container hidden">
+<h3>Current Order</h3>
+<div id="order-items-list"></div>
+<div class="order-summary-total">
+Order Total: $<span id="order-grand-total">0.00</span>
+</div>
+<button id="proceedToShippingBtn">Proceed to Shipping</button>
+</div>
+</div>
+
+<div id="shipping-view" class="container hidden">
+<h2>Enter Shipping Charges</h2>
+<div class="shipping-info-container">
+<h3>Shipping Information</h3>
+<p>Shipping costs are influenced by factors such as your location, country, tent size, and the courier service selected. These need to be pre-calculated. Please contact us at <a href="mailto:info@canvashome.com">info@canvashome.com</a> to receive an exact shipping quote for your country.</p>
+</div>
+<div class="import-duties-container">
+<h3>Import Duties</h3>
+<p>Customs duties and tariffs may apply depending on your country’s regulations. These charges are set by local authorities and are the customer’s responsibility.</p>
+</div>
+<form id="shipping-form">
+<div class="form-group">
+<label for="shippingInput">Enter Shipping Charges:</label>
+<input type="text" id="shippingInput" placeholder="e.g. 150.00">
+</div>
+<button type="button" onclick="calculateFinalTotal()">Next</button>
+</form>
+</div>
+
+<div id="invoice-view" class="container hidden">
+<div class="invoice-header">
+<h2>Invoice</h2>
+<p>Order Summary</p>
+</div>
+<div id="invoice-items-list" class="invoice-details"></div>
+<div class="invoice-subtotal">
+<p><strong>Subtotal:</strong></p>
+<p>$<span id="invoice-subtotal">0.00</span></p>
+</div>
+<div class="invoice-subtotal">
+<p><strong>Shipping Charges:</strong></p>
+<p>$<span id="invoice-shipping">0.00</span></p>
+</div>
+<div class="invoice-subtotal">
+<p><strong>Service Fee (3%):</strong></p>
+<p>$<span id="invoice-service-fee">0.00</span></p>
+</div>
+<div class="invoice-total">
+<p>Grand Total:</p>
+<p>$<span id="invoice-total">0.00</span></p>
+</div>
+<button id="payNowBtn" class="pay-now-button">Pay Now</button>
+<div id="payment-status-message" class="razorpay-message hidden"></div>
+</div>
+
+<!-- Details Modal -->
+<div id="detailsModal" class="modal hidden">
+<div class="modal-content">
+<span class="close-btn" onclick="closeModal()">&times;</span>
+<h3>Tent Details</h3>
+<div id="modalDetailsContent" class="modal-details"></div>
+</div>
+</div>
+
+<script>
+const tentData = [
+{
+"Round Pavilion": {
+"forms": 7,
+"tentType": {
+"CETM_01A": {
+"label": "CETM-01A - Round 9ft",
+"cloth": {
+"oz12": 245, "oz15": 265, "striped": 285, "polycotton": 390
+},
+"extra": {
+"sodCloth": 18, "groundsheet": 20
+}
+},
+"CETM_01B": {
+"label": "CETM-01B - Round 12ft",
+"cloth": {
+"oz12": 310, "oz15": 330, "striped": 360, "polycotton": 510
+},
+"extra": {
+"sodCloth": 25, "groundsheet": 40
+}
+},
+"CETM_01C": {
+"label": "CETM-01C - Round 14ft",
+"cloth": {
+"oz12": 370, "oz15": 410, "striped": 450, "polycotton": 650
+},
+"extra": {
+"sodCloth": 30, "groundsheet": 60
+}
+},
+"CETM_01D": {
+"label": "CETM-01D - Round 16ft",
+"cloth": {
+"oz12": 425, "oz15": 475, "striped": 525, "polycotton": 760
+},
+"extra": {
+"sodCloth": 35, "groundsheet": 70
+}
+},
+"CETM_01E": {
+"label": "CETM-01E - Round 18ft",
+"cloth": {
+"oz12": 470, "oz15": 530, "striped": 575, "polycotton": 860
+},
+"extra": {
+"sodCloth": 40, "groundsheet": 90
+}
+},
+"CETM_01F": {
+"label": "CETM-01F - Round 20ft",
+"cloth": {
+"oz12": 525, "oz15": 590, "striped": 650, "polycotton": 980
+},
+"extra": {
+"sodCloth": 50, "groundsheet": 115
+}
+}
+}
+}
+},
+{
+"Square Medieval Tents": {
+"forms": 7,
+"tentType": {
+"CETM_02A": {
+"label": "CETM-02A - 10x10 FT, Wall 7 FT, Peak 11 FT",
+"cloth": {
+"oz12": 335, "oz15": 375, "striped": 410, "polycotton": 610
+},
+"extra": {
+"sodCloth": 25, "groundsheet": 30
+}
+},
+"CETM_02B": {
+"label": "CETM-02B - 12x12 FT, Wall 7 FT, Peak 11 FT",
+"cloth": {
+"oz12": 400, "oz15": 450, "striped": 500, "polycotton": 750
+},
+"extra": {
+"sodCloth": 30, "groundsheet": 45
+}
+},
+"CETM_02C": {
+"label": "CETM-02C - 14x14 FT, Wall 7 FT, Peak 12 FT",
+"cloth": {
+"oz12": 470, "oz15": 540, "striped": 600, "polycotton": 900
+},
+"extra": {
+"sodCloth": 35, "groundsheet": 60
+}
+},
+"CETM_02D": {
+"label": "CETM-02D - 15x15 FT, Wall 7 FT, Peak 12.5 FT",
+"cloth": {
+"oz12": 510, "oz15": 580, "striped": 630, "polycotton": 980
+},
+"extra": {
+"sodCloth": 35, "groundsheet": 65
+}
+},
+"CETM_02E": {
+"label": "CETM-02E - 16x16 FT, Wall 7 FT, Peak 13.8 FT",
+"cloth": {
+"oz12": 560, "oz15": 640, "striped": 700, "polycotton": 1090
+},
+"extra": {
+"sodCloth": 40, "groundsheet": 70
+}
+},
+"CETM_02F": {
+"label": "CETM-02F - 18x18 FT, Wall 7 FT, Peak 14 FT",
+"cloth": {
+"oz12": 625, "oz15": 720, "striped": 800, "polycotton": 1235
+},
+"extra": {
+"sodCloth": 45, "groundsheet": 90
+}
+},
+"CETM_02G": {
+"label": "CETM-02G - 20x20 FT, Wall 7 FT, Peak 14 FT",
+"cloth": {
+"oz12": 700, "oz15": 800, "striped": 900, "polycotton": 1400
+},
+"extra": {
+"sodCloth": 50, "groundsheet": 100
+}
+}
+}
+}
+},
+{
+"Rectangular Medieval Tent": {
+"forms": 7,
+"tentType": {
+"CETM_04A": {
+"label": "CETM-04A - 12x9 ft",
+"cloth": {
+"oz12": 341, "oz15": 392, "striped": 429, "polycotton": 648
+},
+"extra": {
+"sodCloth": 27, "groundsheet": 27
+}
+},
+"CETM_04B": {
+"label": "CETM-04B - 15x9 ft",
+"cloth": {
+"oz12": 384, "oz15": 445, "striped": 488, "polycotton": 747
+},
+"extra": {
+"sodCloth": 30, "groundsheet": 35
+}
+},
+"CETM_04C": {
+"label": "CETM-04C - 10x10 ft",
+"cloth": {
+"oz12": 327, "oz15": 375, "striped": 409, "polycotton": 615
+},
+"extra": {
+"sodCloth": 25, "groundsheet": 28
+}
+},
+"CETM_04D": {
+"label": "CETM-04D - 12x10 ft",
+"cloth": {
+"oz12": 356, "oz15": 410, "striped": 448, "polycotton": 681
+},
+"extra": {
+"sodCloth": 28, "groundsheet": 33
+}
+},
+"CETM_04E": {
+"label": "CETM-04E - 14x10 ft",
+"cloth": {
+"oz12": 384, "oz15": 445, "striped": 488, "polycotton": 747
+},
+"extra": {
+"sodCloth": 30, "groundsheet": 37
+}
+},
+"CETM_04F": {
+"label": "CETM-04F - 16x10 ft",
+"cloth": {
+"oz12": 413, "oz15": 480, "striped": 527, "polycotton": 812
+},
+"extra": {
+"sodCloth": 33, "groundsheet": 41
+}
+},
+"CETM_04G": {
+"label": "CETM-04G - 12x12 ft",
+"cloth": {
+"oz12": 384, "oz15": 445, "striped": 488, "polycotton": 747
+},
+"extra": {
+"sodCloth": 30, "groundsheet": 39
+}
+}
+}
+}
+},
+{
+"Oval Medieval Tents": {
+"forms": 7,
+"tentType": {
+"CETM_03A": {
+"label": "CETM-03A - 13x9 ft",
+"cloth": {
+"oz12": 287, "oz15": 331, "striped": 362, "polycotton": 551
+},
+"extra": {
+"sodCloth": 27, "groundsheet": 31
+}
+},
+"CETM_03B": {
+"label": "CETM-03B - 16x9 ft",
+"cloth": {
+"oz12": 345, "oz15": 398, "striped": 436, "polycotton": 664
+},
+"extra": {
+"sodCloth": 31, "groundsheet": 39
+}
+},
+"CETM_03C": {
+"label": "CETM-03C - 18x9 ft",
+"cloth": {
+"oz12": 374, "oz15": 433, "striped": 475, "polycotton": 730
+},
+"extra": {
+"sodCloth": 33, "groundsheet": 43
+}
+},
+"CETM_03D": {
+"label": "CETM-03D - 18x13 ft",
+"cloth": {
+"oz12": 408, "oz15": 474, "striped": 522, "polycotton": 807
+},
+"extra": {
+"sodCloth": 38, "groundsheet": 62
+}
+},
+"CETM_03E": {
+"label": "CETM-03E - 22x13 ft",
+"cloth": {
+"oz12": 470, "oz15": 550, "striped": 607, "polycotton": 949
+},
+"extra": {
+"sodCloth": 43, "groundsheet": 77
+}
+},
+"CETM_03F": {
+"label": "CETM-03F - 25x13 ft",
+"cloth": {
+"oz12": 518, "oz15": 608, "striped": 673, "polycotton": 1059
+},
+"extra": {
+"sodCloth": 47, "groundsheet": 86
+}
+},
+"CETM_03G": {
+"label": "CETM-03G - 20x15 ft",
+"cloth": {
+"oz12": 465, "oz15": 544, "striped": 600, "polycotton": 938
+},
+"extra": {
+"sodCloth": 43, "groundsheet": 82
+}
+},
+"CETM_03H": {
+"label": "CETM-03H - 24x15 ft",
+"cloth": {
+"oz12": 528, "oz15": 620, "striped": 686, "polycotton": 1081
+},
+"extra": {
+"sodCloth": 48, "groundsheet": 96
+}
+},
+"CETM_03I": {
+"label": "CETM-03I - 27x15 ft",
+"cloth": {
+"oz12": 596, "oz15": 699, "striped": 773, "polycotton": 1216
+},
+"extra": {
+"sodCloth": 52, "groundsheet": 108
+}
+},
+"CETM_03J": {
+"label": "CETM-03J - 26x18 ft",
+"cloth": {
+"oz12": 615, "oz15": 722, "striped": 799, "polycotton": 1260
+},
+"extra": {
+"sodCloth": 55, "groundsheet": 124
+}
+},
+"CETM_03K": {
+"label": "CETM-03K - 30x18 ft",
+"cloth": {
+"oz12": 687, "oz15": 810, "striped": 898, "polycotton": 1424
+},
+"extra": {
+"sodCloth": 60, "groundsheet": 144
+}
+}
+}
+}
+},
+{
+"Wedge and Bell Ended Wedge Tents": {
+"forms": 4,
+"tentType": {
+"CETM_07A": {
+"label": "CETM-07A - Wedge Medieval Tent (6x6x6 ft)",
+"cloth": {
+"oz12": 147, "oz15": 167, "striped": 189
+}
+},
+"CETM_07B": {
+"label": "CETM-07B - Wedge Medieval Tent (7x7x6 ft)",
+"cloth": {
+"oz12": 156, "oz15": 179, "striped": 204
+}
+},
+"CETM_07C": {
+"label": "CETM-07C - Wedge Medieval Tent (7x8.5x7 ft)",
+"cloth": {
+"oz12": 183, "oz15": 211, "striped": 242
+}
+},
+"CETM_07D": {
+"label": "CETM-07D - Wedge Medieval Tent (7x11.5x7 ft)",
+"cloth": {
+"oz12": 201, "oz15": 234, "striped": 271
+}
+},
+"CETM_07E": {
+"label": "CETM-07E - Wedge Medieval Tent (10x11.5x7 ft)",
+"cloth": {
+"oz12": 233, "oz15": 272, "striped": 316
+}
+},
+"CETM_07F": {
+"label": "CETM-07F - Wedge Medieval Tent (12x12x8 ft)",
+"cloth": {
+"oz12": 287, "oz15": 340, "striped": 398
+}
+},
+"CETM_08F": {
+"label": "CETM-08F - Single Bell Edge Wedge Tent (10x11.5x8 ft)",
+"cloth": {
+"oz12": 352, "oz15": 416, "striped": 486
+}
+},
+"CETM_09F": {
+"label": "CETM-09F - Single Bell Edge Wedge Tent (12x14x8 ft)",
+"cloth": {
+"oz12": 384, "oz15": 456, "striped": 537
+}
+}
+}
+}
+},
+{
+"Double Bell Wedge Tents": {
+"forms": 8,
+"tentType": {
+"CETM_08A": {
+"label": "CETM-08A - Double Bell Wedge Tent 16x12ft",
+"cloth": {
+"oz15": 300, "striped": 350, "polycotton": 460
+},
+"extra": {
+"sodCloth": 20, "groundsheet": 60, "canopyFly": 100
+}
+},
+"CETM_08B": {
+"label": "CETM-08B - Double Bell Wedge Tent 20x12ft",
+"cloth": {
+"oz15": 350, "striped": 400, "polycotton": 550
+},
+"extra": {
+"sodCloth": 25, "groundsheet": 75, "canopyFly": 150
+}
+}
+}
+}
+},
+{
+"Viking Medieval Tents": {
+"forms": 6,
+"tentType": {
+"CETM-06A": {
+"label": "CETM-06A - VIKING MEDIEVAL TENT 17 FT X 14 FT PEAK HEIGHT 11.5 FT",
+"cloth": {
+"oz12": 445, "oz15": 520, "striped": 575, "polycotton": 910
+},
+"extra": {
+"groundsheet": 65
+}
+},
+"CETM-06B": {
+"label": "CETM-06B - VIKING MEDIEVAL TENT 20 FT FT X 14 FT PEAK HEIGHT 10 FT",
+"cloth": {
+"oz12": 425, "oz15": 490, "striped": 540, "polycotton": 850
+},
+"extra": {
+"groundsheet": 75
+}
+},
+"CETM-06C": {
+"label": "CETM-06C - VIKING MEDIEVAL TENT 16FT X 12 FT PEAK HEIGHT 9 FT",
+"cloth": {
+"oz12": 335, "oz15": 390, "striped": 430, "polycotton": 660
+},
+"extra": {
+"groundsheet": 55
+}
+},
+"CETM-06D": {
+"label": "CETM-06D - VIKING MEDIEVAL TENT 14 FT X 10 FT PEAK HEIGHT 8 FT",
+"cloth": {
+"oz12": 270, "oz15": 310, "striped": 340, "polycotton": 510
+},
+"extra": {
+"groundsheet": 45
+}
+},
+"CETM-06E": {
+"label": "CETM-06E - VIKING MEDIEVAL TENT 10 FT X 10 FT PEAK HEIGHT 7 FT",
+"cloth": {
+"oz12": 220, "oz15": 260, "striped": 280, "polycotton": 400
+},
+"extra": {
+"groundsheet": 30
+}
+},
+"CETM-06F": {
+"label": "CETM-06F - VIKING MEDIEVAL TENT 8 FT X 7 FT PEAK HEIGHT 7 FT",
+"cloth": {
+"oz12": 180, "oz15": 200, "striped": 225, "polycotton": 300
+},
+"extra": {
+"groundsheet": 20
+}
+}
+}
+}
+},
+{
+"Anglo Saxon Medieval Tents": {
+"forms": 7,
+"tentType": {
+"CETM_05A": {
+"label": "CETM-05A - Anglo Saxon Geteld 10x6 ft, 6ft peak",
+"cloth": {
+"oz12": 165, "oz15": 180, "striped": 190, "polycotton": 255
+},
+"extra": {
+"sodCloth": 12, "groundsheet": 20
+}
+},
+"CETM_05B": {
+"label": "CETM-05B - Anglo Saxon Geteld 12x7 ft, 7ft peak",
+"cloth": {
+"oz12": 200, "oz15": 215, "striped": 230, "polycotton": 325
+},
+"extra": {
+"sodCloth": 18, "groundsheet": 30
+}
+},
+"CETM_05C": {
+"label": "CETM-05C - Anglo Saxon Geteld 14x8 ft, 8ft peak",
+"cloth": {
+"oz12": 230, "oz15": 255, "striped": 275, "polycotton": 400
+},
+"extra": {
+"sodCloth": 17, "groundsheet": 35
+}
+},
+"CETM_05D": {
+"label": "CETM-05D - Anglo Saxon Geteld 18x10 ft, 9ft peak",
+"cloth": {
+"oz12": 300, "oz15": 325, "striped": 360, "polycotton": 530
+},
+"extra": {
+"sodCloth": 20, "groundsheet": 55
+}
+},
+"CETM_05E": {
+"label": "CETM-05E - Anglo Saxon Geteld 20x10 ft, 10ft peak",
+"cloth": {
+"oz12": 325, "oz15": 375, "striped": 410, "polycotton": 620
+},
+"extra": {
+"sodCloth": 25, "groundsheet": 70
+}
+},
+"CETM_05F": {
+"label": "CETM-05F - Anglo Saxon Geteld 26x13 ft, 8ft peak",
+"cloth": {
+"oz12": 380, "oz15": 445, "striped": 490, "polycotton": 750
+},
+"extra": {
+"sodCloth": 30, "groundsheet": 80
+}
+}
+}
+}
+},
+{
+"Regent Octagonal Medieval Tent": {
+"forms": 7,
+"tentType": {
+"CETM_09A": {
+"label": "CETM-09A - Regent Tent Octagonal 12ft Base",
+"cloth": {
+"oz12": 300, "oz15": 350, "striped": 380, "polycotton": 540
+},
+"extra": {
+"sodCloth": 20, "groundsheet": 45
+}
+},
+"CETM_09B": {
+"label": "CETM-09B - Regent Tent Octagonal 13ft Base",
+"cloth": {
+"oz12": 330, "oz15": 390, "striped": 425, "polycotton": 620
+},
+"extra": {
+"sodCloth": 20, "groundsheet": 65
+}
+},
+"CETM_09C": {
+"label": "CETM-09C - Regent Tent Octagonal 14ft Base",
+"cloth": {
+"oz12": 340, "oz15": 390, "striped": 440, "polycotton": 635
+},
+"extra": {
+"sodCloth": 22, "groundsheet": 75
+}
+},
+"CETM_09D": {
+"label": "CETM-09D - Regent Tent Octagonal 16ft Base",
+"cloth": {
+"oz12": 380, "oz15": 440, "striped": 480, "polycotton": 730
+},
+"extra": {
+"sodCloth": 25, "groundsheet": 100
+}
+}
+}
+}
+},
+{
+"Henry King VIII Tent": {
+"forms": 3,
+"note": "No hardware Provided",
+"tentType": {
+"Tudor Medieval Tent": {
+"label": "Tudor Medieval Tent 12ft Base Diameter",
+"cloth": {
+"oz12pv": 900, "oz12cotton": 915, "oz15cotton": 980, "oz15cotton_striped": 1020, "oz14polycotton": 1275
+},
+"extra": {
+"sodCloth": 60
+}
+},
+"Tudor Medieval Tent 14ft Base Diameter": {
+"label": "Tudor Medieval Tent 14ft Base Diameter",
+"cloth": {
+"oz12pv": 985, "oz12cotton": 1015, "oz15cotton": 1075, "oz15cotton_striped": 1120, "oz14polycotton": 1400
+},
+"extra": {
+"sodCloth": 70
+}
+},
+"Tudor Medieval Tent 16ft Base Diameter": {
+"label": "Tudor Medieval Tent 16ft Base Diameter",
+"cloth": {
+"oz12pv": 1020, "oz12cotton": 1050, "oz15cotton": 1120, "oz15cotton_striped": 1165, "oz14polycotton": 1450
+},
+"extra": {
+"sodCloth": 80
+}
+},
+"Tudor Medieval Tent 18ft Base Diameter": {
+"label": "Tudor Medieval Tent 18ft Base Diameter",
+"cloth": {
+"oz12pv": 1165, "oz12cotton": 1200, "oz15cotton": 1270, "oz15cotton_striped": 1325, "oz14polycotton": 1665
+},
+"extra": {
+"sodCloth": 90
+}
+}
+}
+}
+},
+{
+"Regal Medieval Tent": {
+"forms": 3,
+"tentType": {
+"CETM_010A": {
+"label": "CETM-010A - Regal Medieval Tent 16ft x 18ft Eave / 20ft x 12ft Base",
+"cloth": {
+"oz12white": 325, "oz15white": 380, "striped": 425, "polycotton": 660
+},
+"extra": {
+"sodCloth": 40, "groundsheet": 70
+}
+},
+"CETM_010B": {
+"label": "CETM-010B - Regal Medieval Tent 18ft x 10ft Eave / 22ft x 14ft Base",
+"cloth": {
+"oz12white": 445, "oz15white": 525, "striped": 565, "polycotton": 860
+},
+"extra": {
+"sodCloth": 45, "groundsheet": 85
+}
+},
+"CETM_010C": {
+"label": "CETM-010C - Regal Medieval Tent 20ft x 12ft Eave / 24ft x 16ft Base",
+"cloth": {
+"oz12white": 500, "oz15white": 590, "striped": 650, "polycotton": 995
+},
+"extra": {
+"sodCloth": 50, "groundsheet": 110
+}
+}
+}
+}
+}
+];
+
+const tentNameSelect = document.getElementById('tent');
+const tentTypeSelect = document.getElementById('tentType');
+const canvasSelect = document.getElementById('canvas');
+const scallopSelect = document.getElementById('scallopSelect');
+const colorSelect = document.getElementById('colorSelect');
+const sodClothSelect = document.getElementById('sodClothSelect');
+const groundsheetSelect = document.getElementById('groundsheetSelect');
+const canopyFlySelect = document.getElementById('canopyFlySelect');
+const quantityInput = document.getElementById('quantity');
+const tentSubtotalDisplay = document.getElementById('tent-subtotal');
+const addTentBtn = document.getElementById('addTentBtn');
+const orderSummaryContainer = document.getElementById('order-summary-container');
+const orderItemsList = document.getElementById('order-items-list');
+const orderGrandTotalDisplay = document.getElementById('order-grand-total');
+const proceedToShippingBtn = document.getElementById('proceedToShippingBtn');
+const calculatorView = document.getElementById('calculator-view');
+const shippingView = document.getElementById('shipping-view');
+const invoiceView = document.getElementById('invoice-view');
+const shippingInput = document.getElementById('shippingInput');
+const invoiceItemsList = document.getElementById('invoice-items-list');
+const invoiceSubtotalDisplay = document.getElementById('invoice-subtotal');
+const invoiceShippingDisplay = document.getElementById('invoice-shipping');
+const invoiceServiceFeeDisplay = document.getElementById('invoice-service-fee');
+const invoiceTotalDisplay = document.getElementById('invoice-total');
+const payNowBtn = document.getElementById('payNowBtn');
+const paymentStatusMessage = document.getElementById('payment-status-message');
+const detailsModal = document.getElementById('detailsModal');
+const modalDetailsContent = document.getElementById('modalDetailsContent');
+
+let orderItems = [];
+let tents = [];
+// Helper function to format cloth type labels for display
+function formatClothLabel(clothType) {
+switch (clothType) {
+case "oz12": return "12oz Water + Rot Proof";
+case "oz15": return "15oz Water + Rot Proof";
+case "striped": return "Striped 15oz Colored Canvas";
+case "polycotton": return "Plain White 13oz Poly Cotton Water+Rot+Fire Retardant Canvas";
+case "oz12pv": return "12 OZ P/V RIBBED WATER+ROT PROOF CANVAS";
+case "oz12cotton": return "12 OZ 100% COTTON WATER+ROT TREATED CANVAS";
+case "oz15cotton": return "15 OZ 100% COTTON WATER+ROT TREATED CANVAS";
+case "oz15cotton_striped": return "15 OZ COTTON WATER+ROT PROOF STRIPED CANVAS";
+case "oz14polycotton": return "14 OZ POLY COTTON WATER+ROT+FIRE TREATED CANVAS";
+case "oz12white": return "12 OZ Water + Rot Proof White Canvas";
+case "oz15white": return "15 OZ Water + Rot Proof White Canvas";
+default: return clothType;
+}
+}
+
+// Function to find the selected tent category data
+function getSelectedTentCategoryData() {
+const selectedTentName = tentNameSelect.value;
+for (let i = 0; i < tentData.length; i++) {
+const tentObj = tentData[i];
+if (tentObj[selectedTentName]) {
+return tentObj[selectedTentName];
+}
+}
+return null;
+}
+
+// Function to find the selected specific tent type data (e.g., CETM_01A)
+function getSelectedSpecificTentTypeData() {
+const selectedTentCategory = getSelectedTentCategoryData();
+if (selectedTentCategory) {
+const selectedTentTypeId = tentTypeSelect.value;
+return selectedTentCategory.tentType[selectedTentTypeId];
+}
+return null;
+}
+
+// Function to update the Tent Model and Canvas Type dropdowns
+function updateTentTypeAndCanvas() {
+const selectedTentCategory = getSelectedTentCategoryData();
+if (selectedTentCategory) {
+document.getElementById('tentType').parentElement.classList.remove('hidden');
+document.getElementById('canvas').parentElement.classList.remove('hidden');
+const tentTypes = selectedTentCategory.tentType;
+tentTypeSelect.innerHTML = '';
+for (let code in tentTypes) {
+const option = document.createElement('option');
+option.value = code;
+option.textContent = tentTypes[code].label;
+tentTypeSelect.appendChild(option);
+}
+} else {
+document.getElementById('tentType').parentElement.classList.add('hidden');
+document.getElementById('canvas').parentElement.classList.add('hidden');
+}
+updateCanvasOptions();
+updateExtraOptions();
+calculateTentSubtotal();
+}
+
+// Function to update the Canvas Type dropdown
+function updateCanvasOptions() {
+const currentTentType = getSelectedSpecificTentTypeData();
+if (currentTentType && currentTentType.cloth) {
+document.getElementById('canvas').parentElement.classList.remove('hidden');
+canvasSelect.innerHTML = '';
+const clothOptions = currentTentType.cloth;
+for (let clothType in clothOptions) {
+const option = document.createElement('option');
+option.value = clothType;
+option.textContent = formatClothLabel(clothType);
+canvasSelect.appendChild(option);
+}
+} else {
+document.getElementById('canvas').parentElement.classList.add('hidden');
+}
+updateExtraOptions();
+calculateTentSubtotal();
+}
+
+// Function to update the Sod Cloth, Groundsheet, and Canopy Fly dropdowns
+function updateExtraOptions() {
+const currentTentType = getSelectedSpecificTentTypeData();
+sodClothSelect.innerHTML = '<option value="0">None</option>';
+groundsheetSelect.innerHTML = '<option value="0">None</option>';
+canopyFlySelect.innerHTML = '<option value="0">None</option>';
+document.getElementById('sodClothSelect').parentElement.classList.add('hidden');
+document.getElementById('groundsheetSelect').parentElement.classList.add('hidden');
+document.getElementById('canopyFlySelect').parentElement.classList.add('hidden');
+
+if (currentTentType && currentTentType.extra) {
+const extraOptions = currentTentType.extra;
+if (extraOptions.sodCloth !== undefined) {
+document.getElementById('sodClothSelect').parentElement.classList.remove('hidden');
+const option = document.createElement('option');
+option.value = extraOptions.sodCloth;
+option.textContent = `Sod Cloth: $${extraOptions.sodCloth.toFixed(2)}`;
+sodClothSelect.appendChild(option);
+}
+if (extraOptions.groundsheet !== undefined) {
+document.getElementById('groundsheetSelect').parentElement.classList.remove('hidden');
+const option = document.createElement('option');
+option.value = extraOptions.groundsheet;
+option.textContent = `Groundsheet: $${extraOptions.groundsheet.toFixed(2)}`;
+groundsheetSelect.appendChild(option);
+}
+if (extraOptions.canopyFly !== undefined) {
+document.getElementById('canopyFlySelect').parentElement.classList.remove('hidden');
+const option = document.createElement('option');
+option.value = extraOptions.canopyFly;
+option.textContent = `Canopy Fly: $${extraOptions.canopyFly.toFixed(2)}`;
+canopyFlySelect.appendChild(option);
+}
+}
+calculateTentSubtotal();
+}
+
+// Function to calculate the subtotal for the currently selected tent
+function calculateTentSubtotal() {
+let total = 0;
+const currentTentType = getSelectedSpecificTentTypeData();
+if (currentTentType) {
+const selectedCanvasType = canvasSelect.value;
+const basePrice = currentTentType.cloth[selectedCanvasType];
+if (basePrice !== undefined) {
+total += basePrice;
+}
+total += parseFloat(sodClothSelect.value || 0);
+total += parseFloat(groundsheetSelect.value || 0);
+total += parseFloat(canopyFlySelect.value || 0);
+}
+const quantity = parseInt(quantityInput.value, 10) || 1;
+total *= quantity;
+tentSubtotalDisplay.textContent = total.toFixed(2);
+}
+
+// Function to add a tent to the order
+function addTentToOrder() {
+const currentTentType = getSelectedSpecificTentTypeData();
+const quantity = parseInt(quantityInput.value, 10) || 1;
+const subtotal = parseFloat(tentSubtotalDisplay.textContent);
+
+if (!currentTentType || subtotal === 0) {
+const messageBox = document.createElement('div');
+messageBox.textContent = "Please select a tent and a canvas type to add to your order.";
+messageBox.style.cssText = `
+position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+padding: 20px; background: white; border: 1px solid #ccc;
+box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 1000;
+border-radius: 8px; font-weight: bold;
+`;
+document.body.appendChild(messageBox);
+setTimeout(() => messageBox.remove(), 3000);
+return;
+}
+
+const tentDetails = {
+model: currentTentType.label,
+canvas: {
+type: canvasSelect.options[canvasSelect.selectedIndex].text,
+price: currentTentType.cloth[canvasSelect.value]
+},
+scallop: scallopSelect.options[scallopSelect.selectedIndex].text,
+color: colorSelect.options[colorSelect.selectedIndex].text,
+quantity: quantity,
+extras: [],
+subtotal: subtotal
+};
+
+if (sodClothSelect.value !== '0') {
+tentDetails.extras.push({ type: 'Sod Cloth', price: parseFloat(sodClothSelect.value) });
+}
+if (groundsheetSelect.value !== '0') {
+tentDetails.extras.push({ type: 'Groundsheet', price: parseFloat(groundsheetSelect.value) });
+}
+if (canopyFlySelect.value !== '0') {
+tentDetails.extras.push({ type: 'Canopy Fly', price: parseFloat(canopyFlySelect.value) });
+}
+
+orderItems.push(tentDetails);
+updateOrderSummary();
+document.getElementById('tent-form').reset();
+updateTentTypeAndCanvas();
+}
+
+// Function to update the order summary display
+function updateOrderSummary() {
+orderItemsList.innerHTML = '';
+let grandTotal = 0;
+orderItems.forEach(item => {
+const itemDiv = document.createElement('div');
+itemDiv.className = 'order-summary-item';
+itemDiv.innerHTML = `
+<p><strong>Model:</strong> <span>${item.model}</span></p>
+<p><strong>Canvas:</strong> <span>${item.canvas.type}</span></p>
+<p><strong>Scallop:</strong> <span>${item.scallop}</span></p>
+<p><strong>Color:</strong> <span>${item.color}</span></p>
+<p><strong>Quantity:</strong> <span>${item.quantity}</span></p>
+<p><strong>Extras:</strong> <span>${item.extras.length > 0 ? item.extras.map(e => e.type).join(', ') : 'None'}</span></p>
+<p><strong>Subtotal:</strong> <span>$${item.subtotal.toFixed(2)}</span></p>
+`;
+orderItemsList.appendChild(itemDiv);
+grandTotal += item.subtotal;
+});
+
+orderGrandTotalDisplay.textContent = grandTotal.toFixed(2);
+orderSummaryContainer.classList.remove('hidden');
+}
+
+// Function to handle the "Proceed to Shipping" step
+function showShippingForm() {
+if (orderItems.length === 0) {
+const messageBox = document.createElement('div');
+messageBox.textContent = "Your order is empty. Please add at least one tent to proceed.";
+messageBox.style.cssText = `
+position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+padding: 20px; background: white; border: 1px solid #ccc;
+box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 1000;
+border-radius: 8px; font-weight: bold;
+`;
+document.body.appendChild(messageBox);
+setTimeout(() => messageBox.remove(), 3000);
+return;
+}
+calculatorView.classList.add('hidden');
+shippingView.classList.remove('hidden');
+}
+
+// Function to handle the final invoice calculation
+function calculateFinalTotal() {
+const shippingCharges = parseFloat(shippingInput.value) || 0;
+const orderSubtotal = parseFloat(orderGrandTotalDisplay.textContent);
+const serviceFee = orderSubtotal * 0.03;
+const finalGrandTotal = orderSubtotal + shippingCharges + serviceFee;
+
+invoiceItemsList.innerHTML = '';
+orderItems.forEach((item, index) => {
+const itemDiv = document.createElement('div');
+itemDiv.className = 'invoice-item';
+itemDiv.innerHTML = `
+<div class="invoice-item-name">${item.model} (Qty: ${item.quantity})</div>
+<div class="invoice-item-details">
+<button class="view-details-btn" onclick="showTentDetails(${index})">View Details</button>
+<p>$${item.subtotal.toFixed(2)}</p>
+</div>
+`;
+invoiceItemsList.appendChild(itemDiv);
+});
+console.log(invoiceItemsList);
+invoiceSubtotalDisplay.textContent = orderSubtotal.toFixed(2);
+invoiceShippingDisplay.textContent = shippingCharges.toFixed(2);
+invoiceServiceFeeDisplay.textContent = serviceFee.toFixed(2);
+invoiceTotalDisplay.textContent = finalGrandTotal.toFixed(2);
+
+shippingView.classList.add('hidden');
+invoiceView.classList.remove('hidden');
+}
+
+// Function to handle Razorpay payment and storing notes
+
+async function payNow() {
+payNowBtn.disabled = true;
+const orderSubtotal = parseFloat(orderGrandTotalDisplay.textContent);
+const shippingCharges = parseFloat(shippingInput.value) || 0;
+const serviceFee = orderSubtotal * 0.03;
+const finalGrandTotal = orderSubtotal + shippingCharges + serviceFee;
+const amount = finalGrandTotal * 100; // Razorpay requires amount in paise
+
+// This is a placeholder Key ID. Replace with your actual key.
+const razorpayKey = "rzp_live_jK36LjyDv8pteN";
+
+if (razorpayKey === "YOUR_RAZORPAY_KEY_ID") {
+const message = "Please replace 'YOUR_RAZORPAY_KEY_ID' with your actual key to enable payments.";
+const messageBox = document.createElement('div');
+messageBox.textContent = message;
+messageBox.style.cssText = `
+position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+padding: 20px; background: #f7e6e6; border: 1px solid #dc3545;
+box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 1000;
+border-radius: 8px; font-weight: bold; color: #dc3545;
+`;
+document.body.appendChild(messageBox);
+setTimeout(() => messageBox.remove(), 5000);
+payNowBtn.disabled = false;
+return;
+}
+ try {
+        const url_base = "https://tentsdata.vercel.app/";
+        const vercelSecret = "PD7TCdDLhv6vlBUzlbPwlr0QInLFftWO";
+
+        // Step 1: Generate a unique order key from your Vercel API
+        const generateOrderKeyResponse = await fetch(`${url_base}/api/generate-order-key`, {
+            method: 'POST',
+            headers: {
+                'x-vercel-protection-bypass': vercelSecret
+            },
+        });
+
+        if (!generateOrderKeyResponse.ok) {
+            throw new Error('Failed to generate order key.');
+        }
+
+        const { orderKey } = await generateOrderKeyResponse.json();
+        // console.log("Order Key:", orderKey);
+
+        // Step 2: Prepare the full order data to send to your backend
+        const orderData = {
+            orderKey: orderKey, // Pass the key back to the server
+            tents: invoiceItemsList, // Your array with all tent details
+            shippingDetails: {
+                shippingCharges: parseFloat(shippingInput.value) || 0,
+            },
+            totalAmount: parseFloat(invoiceTotalDisplay.textContent) || 0,
+            // Notes field will be populated by the backend after Pinata upload
+            notes: {} 
+        };
+
+        // Step 3: Upload the order to your backend service, which handles Pinata
+        const uploadOrderResponse = await fetch(`${url_base}/api/upload-order`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-vercel-protection-bypass': vercelSecret
+            },
+            body: JSON.stringify(orderData)
+        });
+
+        if (!uploadOrderResponse.ok) {
+            const errorData = await uploadOrderResponse.json();
+            throw new Error(`Failed to upload order data: ${uploadOrderResponse.status} ${uploadOrderResponse.statusText} - ${JSON.stringify(errorData)}`);
+        }
+
+        const uploadResult = await uploadOrderResponse.json();
+        const ipfsHash = uploadResult.ipfsHash || null; // Your backend returns the hash
+
+        // Step 4: Update the notes object with the IPFS hash
+        orderData.notes.ipfsHash = ipfsHash;
+        
+        console.log("Order uploaded successfully. IPFS Hash:", ipfsHash);
+        
+        alert("Payment successful! Your order has been placed.");
+
+    } catch (error) {
+        console.error("An error occurred during the order process:", error);
+        alert("There was an error processing your payment. Please try again.");
+    }
+
+const options = {
+"key": razorpayKey,
+"amount": amount,
+"currency": "USD", // Change currency if needed
+"name": "Canvashome",
+"description": "Payment for Tent Order",
+"image": "https://lh3.googleusercontent.com/a-/ALV-UjUlDn-yj4Kqnvyrlxn7jfn2C3gvClQw_u2JnKTqbF6M8vK7awvx=s160-p-k-rw-no",
+"handler": function (response) {
+// Handle successful payment
+paymentStatusMessage.textContent = "Payment Successful! Payment ID: " + response.razorpay_payment_id;
+paymentStatusMessage.className = 'razorpay-message razorpay-success';
+paymentStatusMessage.classList.remove('hidden');
+},
+"prefill": {
+"name": "", // Customer's name
+"email": "" // Customer's email
+},
+"notes": notes,
+"theme": {
+"color": "#2196F3"
+}
+};
+
+const rzp = new Razorpay(options);
+rzp.on('payment.failed', function (response) {
+paymentStatusMessage.textContent = "Payment Failed: " + response.error.description;
+paymentStatusMessage.className = 'razorpay-message razorpay-error';
+paymentStatusMessage.classList.remove('hidden');
+payNowBtn.disabled = false;
+});
+
+rzp.open();
+}
+
+// load tents from localStorage (if any)
+const saved = localStorage.getItem("tents");
+if (saved) {
+  try {
+    tents = JSON.parse(saved);
+  } catch(e) {
+    tents = [];
+  }
+}
+
+function showTentDetails(index,flag=true) {
+   
+  const tent = orderItems[index]; // make sure orderItems is defined
+
+  const extrasHtml = tent.extras.length > 0
+    ? tent.extras.map(e => `<p><strong>${e.type}:</strong> $${e.price.toFixed(2)}</p>`).join('')
+    : '<p>None</p>';
+
+  const html = `
+    <p><strong>Model:</strong> ${tent.model}</p>
+    <p><strong>Canvas:</strong> ${tent.canvas.type} ($${tent.canvas.price.toFixed(2)})</p>
+    <p><strong>Scallop:</strong> ${tent.scallop}</p>
+    <p><strong>Color:</strong> ${tent.color}</p>
+    <p><strong>Quantity:</strong> ${tent.quantity}</p>
+    <h4>Extras:</h4>
+    ${extrasHtml}
+    <p><strong>Subtotal:</strong> $${tent.subtotal.toFixed(2)}</p>
+  `;
+    
+  modalDetailsContent.innerHTML = html;
+ if(flag) detailsModal.classList.remove('hidden');
+  // ✅ push the tent and save back to localStorage
+ return modalDetailsContent.innerText;
+}
+
+function getInvoiceDetails() {
+  const items = document.querySelectorAll("#invoice-items-list .invoice-item");
+  const results = [];
+
+  items.forEach((item, index) => {
+    // Call the existing function dynamically
+    const details = showTentDetails(index,false);  
+    results.push(details);
+  });
+
+  return {results:results,shippingCharges:shippingInput.value};
+}
+
+function closeModal() {
+detailsModal.classList.add('hidden');
+}
+
+// Event listeners
+tentNameSelect.addEventListener('change', updateTentTypeAndCanvas);
+tentTypeSelect.addEventListener('change', updateCanvasOptions);
+canvasSelect.addEventListener('change', calculateTentSubtotal);
+sodClothSelect.addEventListener('change', calculateTentSubtotal);
+groundsheetSelect.addEventListener('change', calculateTentSubtotal);
+canopyFlySelect.addEventListener('change', calculateTentSubtotal);
+quantityInput.addEventListener('input', calculateTentSubtotal);
+addTentBtn.addEventListener('click', addTentToOrder);
+proceedToShippingBtn.addEventListener('click', showShippingForm);
+payNowBtn.addEventListener('click', payNow);
+
+// Initial population of the tent category dropdown
+window.addEventListener('load', () => {
+const tentNames = tentData.map(tentObj => Object.keys(tentObj)[0]);
+tentNameSelect.innerHTML = tentNames.map(name => `<option value="${name}">${name}</option>`).join('');
+updateTentTypeAndCanvas();
+});
+
+</script>
+
+</body>
+</html>
